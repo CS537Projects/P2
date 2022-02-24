@@ -38,10 +38,32 @@ void turtle_mode(){
         //fork()bs
         //do command
 
+        pid_t pid = fork();
+        int status;
+        pid_t wait;
+        if(pid == 0){
+            //Child
+            execvp(array[0], array);
+            _exit(0);
+
+        }else if(pid <0){
+            //Error 
+            exit(1);
+        }else{
+            do {
+                wait = waitpid(pid, &status, 0);
+            } while (!WIFSIGNALED(status) && !WIFEXITEDg(status));
+        }
+
         exit_found = 1;
+        for(int i = 0; i<array; i++){
+            free(array[i]);
+        }
+
+        free(array);
 
     }while(exit_found == 0);
-    exit(0);
+    _exit(0);
 }
 
 int main(int argc, char **argv)
