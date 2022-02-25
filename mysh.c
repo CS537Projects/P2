@@ -12,6 +12,7 @@
 
 void turtle_mode(){
     int exit_found = 0;
+    char *temp;
     do{
         const char delim[2] = " ";
         char buf[512];
@@ -19,22 +20,20 @@ void turtle_mode(){
         char **array = malloc(sizeof(char *));
 
         write(1, "> ", 3);
-        //get line
         fgets(buf, sizeof buf, stdin);
-        strncpy(token, buf, strlen(buf)-1);
-        //strncat(token, "\0", 2);
-        token = strtok(token, delim);
-        int i = 0;
+        buf[strcspn(buf, "\n")] = 0;
+        token = strtok(buf, delim);
+
+        int j = 0;
         while(token != NULL) {
-            array[i] = malloc(sizeof(token));
-            strncpy(array[i], token, strlen(token));
+            array[j] = malloc(sizeof(token));
+            strncpy(array[j], token, strlen(token));
             token = strtok(NULL, delim);
-            i++;
+            j++;
         }
         if(strncmp(array[0], "exit",512) == 0){
             exit_found = 1;
         }else{
-            
             pid_t pid = fork();
             int status;
             pid_t wait;
@@ -52,12 +51,11 @@ void turtle_mode(){
                 } while (!WIFSIGNALED(status) && !WIFEXITED(status));
             }
         }
+
         for(int i = 0; i<sizeof(array); i++){
-                free(array[i]);
+                array[i] = NULL;
         }
         free(array);
-        //free(token);
-        //_exit(0);
     }while(exit_found == 0);
     _exit(0);
 }
