@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 //mysh.c
 
 //This literally is pretty much what we need to do, 
@@ -16,27 +17,33 @@ void turtle_mode(){
         char buf[512];
         char *token;
         char **array;
+
+        char ***aliasArray;
+
         array = malloc(sizeof(char *));
+        aliasArray = malloc(sizeof(char **));
 
         printf("> ");
         //get line
         fgets(buf, sizeof buf, stdin);
+        strncpy(token, buf, strlen(buf)-1);
+        strncat(token, "\0", 2);
 
-        //parse line
-        token = strtok(buf, delim);
+        token = strtok(token, delim);
         int i = 0;
         while(token != NULL) {
-            printf( "%s\n", token );
             array[i] = malloc(sizeof(token));
-            strncpy(array[i], token, sizeof(token));
+            strncpy(array[i], token, strlen(token));
             token = strtok(NULL, delim);
             i++;
         }
-        
-        //fork bs with array bs 
-        
-        //fork()bs
-        //do command
+
+        //check array[0] for alias
+        //go through array, check for >>
+            //The exact format of redirection is: a command (along with its arguments, 
+            //if present), followed by any number of white spaces (including none), 
+            //the redirection symbol >,  again any number of white space (including none), 
+            //followed by a filename.
 
         pid_t pid = fork();
         int status;
@@ -52,11 +59,11 @@ void turtle_mode(){
         }else{
             do {
                 wait = waitpid(pid, &status, 0);
-            } while (!WIFSIGNALED(status) && !WIFEXITEDg(status));
+            } while (!WIFSIGNALED(status) && !WIFEXITED(status));
         }
 
         exit_found = 1;
-        for(int i = 0; i<array; i++){
+        for(int i = 0; i<sizeof(array); i++){
             free(array[i]);
         }
 
