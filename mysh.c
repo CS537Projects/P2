@@ -15,20 +15,14 @@ void turtle_mode(){
     do{
         const char delim[2] = " ";
         char buf[512];
-        char *token;
-        char **array;
+        char *token = malloc(sizeof(buf));
+        char **array = malloc(sizeof(char *));
 
-        char ***aliasArray;
-
-        array = malloc(sizeof(char *));
-        aliasArray = malloc(sizeof(char **));
-
-        printf("> ");
+        write(1, "> ", 3);
         //get line
         fgets(buf, sizeof buf, stdin);
         strncpy(token, buf, strlen(buf)-1);
-        strncat(token, "\0", 2);
-
+        //strncat(token, "\0", 2);
         token = strtok(token, delim);
         int i = 0;
         while(token != NULL) {
@@ -37,38 +31,33 @@ void turtle_mode(){
             token = strtok(NULL, delim);
             i++;
         }
-
-        //check array[0] for alias
-        //go through array, check for >>
-            //The exact format of redirection is: a command (along with its arguments, 
-            //if present), followed by any number of white spaces (including none), 
-            //the redirection symbol >,  again any number of white space (including none), 
-            //followed by a filename.
-
-        pid_t pid = fork();
-        int status;
-        pid_t wait;
-        if(pid == 0){
-            //Child
-            execvp(array[0], array);
-            _exit(0);
-
-        }else if(pid <0){
-            //Error 
-            exit(1);
+        if(strncmp(array[0], "exit",512) == 0){
+            exit_found = 1;
         }else{
-            do {
-                wait = waitpid(pid, &status, 0);
-            } while (!WIFSIGNALED(status) && !WIFEXITED(status));
-        }
+            
+            pid_t pid = fork();
+            int status;
+            pid_t wait;
+            if(pid == 0){
+                //Child
+                execvp(array[0], array);
+                _exit(0);
 
-        exit_found = 1;
+            }else if(pid <0){
+                //Error 
+                exit(1);
+            }else{
+                do {
+                    wait = waitpid(pid, &status, 0);
+                } while (!WIFSIGNALED(status) && !WIFEXITED(status));
+            }
+        }
         for(int i = 0; i<sizeof(array); i++){
-            free(array[i]);
+                free(array[i]);
         }
-
         free(array);
-
+        //free(token);
+        //_exit(0);
     }while(exit_found == 0);
     _exit(0);
 }
