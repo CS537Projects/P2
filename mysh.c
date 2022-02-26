@@ -71,19 +71,19 @@ void bachelorette_mode(char *file){
         _exit(1);
     }
     int exit = 0;
+    
     char buf[512];
-    while ((fgets(buf, sizeof(buf), fp) != NULL) && (exit == 0)) {
+    while ((fgets(buf, sizeof(buf), fp) != NULL) && (exit == 0)){
         const char delim[2] = " ";
         char *token = malloc(sizeof(buf));
         char **array = malloc(sizeof(char *));
-        //fgets(buf, sizeof(buf), fp);
         buf[strcspn(buf, "\n")] = 0;
         token = strtok(buf, delim);
 
         int j = 0;
         while(token != NULL) {
             array[j] = malloc(sizeof(token));
-            strncpy(array[j], token, strlen(token));
+            array[j] = strdup(token);
             token = strtok(NULL, delim);
             j++;
         }
@@ -112,7 +112,7 @@ void bachelorette_mode(char *file){
                 array[i] = NULL;
         }
         free(array);
-    }
+    } 
     fclose(fp);
 
 }
