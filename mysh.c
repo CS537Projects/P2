@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
 //mysh.c
 
 //This literally is pretty much what we need to do, 
@@ -31,6 +32,7 @@ void turtle_mode(){
             token = strtok(NULL, delim);
             j++;
         }
+
         if(strncmp(array[0], "exit",512) == 0){
             exit_found = 1;
         }else{
@@ -39,6 +41,7 @@ void turtle_mode(){
             pid_t wait;
             if(pid == 0){
                 //Child
+                if(strcasestr(array[]))
                 execvp(array[0], array);
                 _exit(0);
 
@@ -115,6 +118,15 @@ void bachelorette_mode(char *file){
     } 
     fclose(fp);
 
+}
+
+void detour(char* fileName){
+    close(STDOUT_FILENO);
+    int desc = open(fileName,  O_CREAT|O_WRONLY|O_TRUNC, S_IRWXU);
+    if(dup2(desc, STDIN_FILENO) < 0) {
+        //Is this the correct error?
+        printf("Cannot write to file %s.\n", fileName);
+    }
 }
 
 
