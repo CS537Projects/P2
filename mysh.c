@@ -75,6 +75,8 @@ void turtle_mode(){
                 }
             }
 
+            char file_name[512];
+            int det = 0;
             if(counter != 0){
 
                 // more than one > 
@@ -87,48 +89,75 @@ void turtle_mode(){
                     || (arrayIndex < length - 2)){
                     write(1, "Redirection misformatted.\n", 27);
                 }
-                char file_name[512];
+                
                 const char replace[1] = "";
+                
+                char *temp = malloc(sizeof(array[arrayIndex]));
+                     
+                strncpy(temp, array[arrayIndex], strlen(array[arrayIndex]));
 
                 //There is something after > in the same string
                 if(position != strlen(array[arrayIndex]) - 1){
 
-                     char *temp = malloc(sizeof(array[arrayIndex]));
-                     strncpy(temp, array[arrayIndex], strlen(array[arrayIndex]));
-                     token = strtok(temp, comparison);
-                     token = strtok(NULL, comparison);
-                     strncpy(file_name, token, strlen(token));
+            
+
+                     
+                     det = 1;
+                     
                      //get b for file name
                      if(position != 0){
+                         token = strtok(temp, comparison);
+                         token = strtok(NULL, comparison);
+                         strncpy(file_name, token, strlen(token));
                          //change string in array to just A
-                         strncpy(array[arrayIndex], array[arrayIndex], strlen(array[arrayIndex]) - strlen(token) - 1);
+                         printf("here3\n");
+                         printf("token:%s, filename:%s, arrayindexsize:%lu\n", token, file_name, strlen(array[arrayIndex]));
+                         printf("tokenlength: %ld\n", strlen(token));
+                         strncpy(array[arrayIndex], temp, strlen(temp));
+                         printf("here4\n");
                          //A>B
                      }else{
+                         token = strtok(temp, comparison);
+                         strncpy(file_name, token, strlen(token));
                          //change >B to ""
-                         strncpy(array[arrayIndex], replace, strlen(array[arrayIndex + 1]));
+                         //printf("here1\n");
+                         strncpy(array[arrayIndex], replace, strlen(array[arrayIndex]));
                          //A >B
                      }
                 }else{
                     strncpy(file_name, array[arrayIndex + 1], 512); //get b for filename
 
                     if(position != 0){
-                        strncpy(array[arrayIndex], array[arrayIndex], strlen(array[arrayIndex]) - 1); //A change
+                        strncpy(array[arrayIndex], temp, strlen(temp) - 1); //A change
                         strncpy(array[arrayIndex + 1], replace, strlen(array[arrayIndex + 1])); //B replace
                         //A> B
                     }else{
+                        //array[arrayIndex] = NULL;
+                        //array[arrayIndex +1] = NULL;
                         strncpy(array[arrayIndex], replace, strlen(array[arrayIndex])); //> replace
                         strncpy(array[arrayIndex + 1], replace, strlen(array[arrayIndex + 1])); //B replace
                         //A > B
                     }
                 }
-
-
+                
             }
+
+            
+
             pid_t pid = fork();
             int status;
+
             pid_t wait;
             if(pid == 0){
-                 //Child
+                //Child
+                if(det == 1){
+                    close(STDOUT_FILENO);
+                    int desc = open(file_name,O_WRONLY | O_APPEND);
+                    if(dup2(desc, STDIN_FILENO) < 0) {
+                        //Is this the correct error?
+                        printf("Cannot write to file %s.\n", file_name);
+                    }
+                }
                 execvp(array[0], array);
                 _exit(0);
 
@@ -146,6 +175,8 @@ void turtle_mode(){
                 array[i] = NULL;
         }
         free(array);
+
+       // open(STDOUT_FILENO);
     }while(exit_found == 0);
     _exit(0);
 }
