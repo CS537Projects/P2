@@ -11,6 +11,15 @@
 //          V
 // https://brennan.io/2015/01/16/write-a-shell-in-c/
 
+void detour(char* fileName){
+    close(STDOUT_FILENO);
+    int desc = open(fileName, O_CREAT|O_WRONLY|O_TRUNC, S_IRWXU);
+    if(dup2(desc, STDIN_FILENO) < 0) {
+        //Is this the correct error?
+        printf("Cannot write to file %s.\n", fileName);
+    }
+}
+
 void turtle_mode(){
     int exit_found = 0;
     //char *temp;
@@ -65,6 +74,7 @@ void turtle_mode(){
                     position = temp;
                 }
             }
+
             if(counter != 0){
 
                 // more than one > 
@@ -77,21 +87,29 @@ void turtle_mode(){
                     || (arrayIndex < length - 2)){
                     write(1, "Redirection misformatted.\n", 27);
                 }
-
                 char file_name[512];
                 const char replace[1] = "";
 
                 //There is something after > in the same string
                 if(position != strlen(array[arrayIndex]) - 1){
+                     char *temp = malloc(sizeof(array[arrayIndex]));\
+                     strncpy(temp, array[arrayIndex], strlen(array[arrayIndex]));
+                     token = strtok(temp, comparison);
+                     token = strtok(NULL, comparison);
+                     printf("%s", token);
+                     
 
-                    //get b for file name
-                    if(position != 0){
-                        //change string in array to just A
-                        //A>B
-                    }else{
-                        //change >B to ""
-                        //A >B
-                    }
+                    
+                     
+
+                     //get b for file name
+                     if(position != 0){
+                         //change string in array to just A
+                         //A>B
+                     }else{
+                         //change >B to ""
+                         //A >B
+                     }
                 }else{
                     strncpy(file_name, array[arrayIndex + 1], 512); //get b for filename
 
@@ -133,7 +151,6 @@ void turtle_mode(){
     }while(exit_found == 0);
     _exit(0);
 }
-
 
 void bachelorette_mode(char *file){
     
@@ -190,16 +207,6 @@ void bachelorette_mode(char *file){
     fclose(fp);
 
 }
-
-void detour(char* fileName){
-    close(STDOUT_FILENO);
-    int desc = open(fileName,  O_CREAT|O_WRONLY|O_TRUNC, S_IRWXU);
-    if(dup2(desc, STDIN_FILENO) < 0) {
-        //Is this the correct error?
-        printf("Cannot write to file %s.\n", fileName);
-    }
-}
-
 
 int main(int argc, char **argv)
 {
