@@ -92,22 +92,20 @@ void turtle_mode(){
 
                 //There is something after > in the same string
                 if(position != strlen(array[arrayIndex]) - 1){
-                     char *temp = malloc(sizeof(array[arrayIndex]));\
+
+                     char *temp = malloc(sizeof(array[arrayIndex]));
                      strncpy(temp, array[arrayIndex], strlen(array[arrayIndex]));
                      token = strtok(temp, comparison);
                      token = strtok(NULL, comparison);
-                     printf("%s", token);
-                     
-
-                    
-                     
-
+                     strncpy(file_name, token, strlen(token));
                      //get b for file name
                      if(position != 0){
                          //change string in array to just A
+                         strncpy(array[arrayIndex], array[arrayIndex], strlen(array[arrayIndex]) - strlen(token) - 1);
                          //A>B
                      }else{
                          //change >B to ""
+                         strncpy(array[arrayIndex], replace, strlen(array[arrayIndex + 1]));
                          //A >B
                      }
                 }else{
