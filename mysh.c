@@ -75,11 +75,15 @@ void turtle_mode(){
                     || (position == strlen(array[arrayIndex]) - 1 && arrayIndex == length - 1) 
                     || (position != strlen(array[arrayIndex]) - 1 && arrayIndex != length - 1)
                     || (arrayIndex < length - 2)){
-                    write(1, "> failed\n", 10);
+                    write(1, "Redirection misformatted.\n", 27);
                 }
+
+                char file_name[512];
+                const char replace[1] = "";
 
                 //There is something after > in the same string
                 if(position != strlen(array[arrayIndex]) - 1){
+
                     //get b for file name
                     if(position != 0){
                         //change string in array to just A
@@ -89,12 +93,15 @@ void turtle_mode(){
                         //A >B
                     }
                 }else{
-                    //get b for filename
+                    strncpy(file_name, array[arrayIndex + 1], 512); //get b for filename
+
                     if(position != 0){
-                        //change string in array to just A,B to ""
+                        strncpy(array[arrayIndex], array[arrayIndex], strlen(array[arrayIndex]) - 1); //A change
+                        strncpy(array[arrayIndex + 1], replace, strlen(array[arrayIndex + 1])); //B replace
                         //A> B
                     }else{
-                        //change > and B to ""(or remove)
+                        strncpy(array[arrayIndex], replace, strlen(array[arrayIndex])); //> replace
+                        strncpy(array[arrayIndex + 1], replace, strlen(array[arrayIndex + 1])); //B replace
                         //A > B
                     }
                 }
