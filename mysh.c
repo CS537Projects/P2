@@ -25,23 +25,87 @@ void turtle_mode(){
         buf[strcspn(buf, "\n")] = 0;
         token = strtok(buf, delim);
 
-        int j = 0;
+        int length = 0;
         while(token != NULL) {
-            array[j] = malloc(sizeof(token));
-            strncpy(array[j], token, strlen(token));
+            array[length] = malloc(sizeof(token));
+            strncpy(array[length], token, strlen(token));
             token = strtok(NULL, delim);
-            j++;
+            length++;
+        }
+
+        for(int i = 0; i < length; i++){
+            printf("%s\n", array[i]);
         }
 
         if(strncmp(array[0], "exit",512) == 0){
             exit_found = 1;
+        }else if(strncmp(array[0], "alias",512) == 0){
+            write(1, "alias detected\n", 16);
+        }else if(strncmp(array[0], "unalias",512) == 0){
+            write(1, "unalias detected\n", 18);
         }else{
+                int arrayIndex = -1; //index in array where < is found
+                int position = -1; //index inside of string where < is found
+                int counter = 0;
+
+                //for each thing in array
+                    //index of >>
+                    //if theres two, throw error
+                    //if only one
+                        //check to see if its the only char in array and in correct spacing
+                            //if it is, open file, change two in array too ""
+                        //if < is not last char in string,
+            const char comparison[] = ">";
+            for(int i = 0; i < length; i++){
+                int temp = strcspn(array[i],comparison);
+                if(temp < strlen(array[i])){
+                    write(1, "> detected\n", 12);
+                    counter++;
+                    arrayIndex = i;
+                    position = temp;
+                }
+            }
+            if(counter != 0){
+
+                // more than one > 
+                // there is nothing after > 
+                // there is something after > and another array position
+                // > not in last two positions
+                if (counter > 1 
+                    || (position == strlen(array[arrayIndex]) - 1 && arrayIndex == length - 1) 
+                    || (position != strlen(array[arrayIndex]) - 1 && arrayIndex != length - 1)
+                    || (arrayIndex < length - 2)){
+                    write(1, "> failed\n", 10);
+                }
+
+                //There is something after > in the same string
+                if(position != strlen(array[arrayIndex]) - 1){
+                    //get b for file name
+                    if(position != 0){
+                        //change string in array to just A
+                        //A>B
+                    }else{
+                        //change >B to ""
+                        //A >B
+                    }
+                }else{
+                    //get b for filename
+                    if(position != 0){
+                        //change string in array to just A,B to ""
+                        //A> B
+                    }else{
+                        //change > and B to ""(or remove)
+                        //A > B
+                    }
+                }
+
+
+            }
             pid_t pid = fork();
             int status;
             pid_t wait;
             if(pid == 0){
-                //Child
-                if(strcasestr(array[]))
+                 //Child
                 execvp(array[0], array);
                 _exit(0);
 
@@ -77,18 +141,18 @@ void bachelorette_mode(char *file){
     
     char buf[512];
     while ((fgets(buf, sizeof(buf), fp) != NULL) && (exit == 0)){
+        int length = 0;
         const char delim[2] = " ";
         char *token = malloc(sizeof(buf));
         char **array = malloc(sizeof(char *));
         buf[strcspn(buf, "\n")] = 0;
         token = strtok(buf, delim);
 
-        int j = 0;
         while(token != NULL) {
-            array[j] = malloc(sizeof(token));
-            array[j] = strdup(token);
+            array[length] = malloc(sizeof(token));
+            array[length] = strdup(token);
             token = strtok(NULL, delim);
-            j++;
+            length++;
         }
         if(strncmp(array[0], "exit",512) == 0){
             exit = 1;
