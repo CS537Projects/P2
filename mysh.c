@@ -78,7 +78,7 @@ void turtle_mode(){
                     write(1, "Redirection misformatted.\n", 27);
                 }
                 
-                const char replace[1] = "";
+                char **tempArray = malloc(sizeof(char *) * length);
                 
                 char *temp = malloc(sizeof(array[arrayIndex]));
                      
@@ -93,36 +93,46 @@ void turtle_mode(){
                          token = strtok(temp, comparison);
                          token = strtok(NULL, comparison);
                          strncpy(file_name, token, strlen(token));
-                         //change string in array to just A
                          strncpy(array[arrayIndex], temp, strlen(temp));
                          //A>B
                      }else{
                          token = strtok(temp, comparison);
                          strncpy(file_name, token, strlen(token));
-                         //change >B to ""
-                         //printf("here1\n");
-                         strncpy(array[arrayIndex], replace, strlen(array[arrayIndex]));
+                         free(array[arrayIndex]);
                          //A >B
+                        length--;
                      }
                 }else{
                     strncpy(file_name, array[arrayIndex + 1], 512); //get b for filename
 
                     if(position != 0){
-                        strncpy(array[arrayIndex], temp, strlen(temp) - 1); //A change
-                        strncpy(array[arrayIndex + 1], replace, strlen(array[arrayIndex + 1])); //B replace
+                        free(array[arrayIndex + 1]);
+                        strncpy(array[arrayIndex], temp, strlen(temp) - 1);
+                        length--;
                         //A> B
                     }else{
-                        //array[arrayIndex] = NULL;
-                        //array[arrayIndex +1] = NULL;
-                        strncpy(array[arrayIndex], replace, strlen(array[arrayIndex])); //> replace
-                        strncpy(array[arrayIndex + 1], replace, strlen(array[arrayIndex + 1])); //B replace
+                        free(array[arrayIndex]);
+                        free(array[arrayIndex + 1]);
+                        length = length - 2;
                         //A > B
                     }
                 }
+                for(int i = 0; i < length; i++){
+                    tempArray[i] = malloc(sizeof(strlen(array[i])));
+                    strncpy(tempArray[i], array[i], strlen(array[i]));
+                }
+                for(int i = 0; i < length; i++){
+                    free(array[i]); //have to free more based on choices
+                }
+                free(array);
+                array = tempArray;
+
+                for(int i = 0; i < length; i++){
+                    printf("_%s_\n", array[i]); //have to free more based on choices
+                }
+                printf("_%s_\n", file_name);
                 
             }
-
-            
 
             pid_t pid = fork();
             int status;
@@ -132,7 +142,7 @@ void turtle_mode(){
                 //Child
                 if(det == 1){
                     close(STDOUT_FILENO);
-                    int desc = open(file_name,O_WRONLY | O_APPEND);
+                    int desc = open(file_name,O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
                     if(dup2(desc, STDIN_FILENO) < 0) {
                         //Is this the correct error?
                         printf("Cannot write to file %s.\n", file_name);
