@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/wait.h>
 //mysh.c
 
 //This literally is pretty much what we need to do, 
@@ -13,7 +14,7 @@
 
 
 void turtle_mode(){
-    int exit_found = 0;
+    int exit_found = 1;
     //char *temp;
     do{
         const char delim[2] = " ";
@@ -79,7 +80,6 @@ void turtle_mode(){
                 }
                 
                 char **tempArray = malloc(sizeof(char *) * length);
-                
                 char *temp = malloc(sizeof(array[arrayIndex]));
                      
                 strncpy(temp, array[arrayIndex], strlen(array[arrayIndex]));
@@ -92,34 +92,58 @@ void turtle_mode(){
                      if(position != 0){
                          token = strtok(temp, comparison);
                          token = strtok(NULL, comparison);
+
                          strncpy(file_name, token, strlen(token));
-                         strncpy(array[arrayIndex], temp, strlen(temp));
-                         //A>B
+                         int j = 0;
+                         for (j = 0; temp[j] != '\0'; ++j) {
+                            array[arrayIndex][j] = temp[j];
+                         }
+                         array[arrayIndex][j] = '\0';
+                         //A>B  works
                      }else{
                          token = strtok(temp, comparison);
                          strncpy(file_name, token, strlen(token));
                          free(array[arrayIndex]);
-                         //A >B
+                         //A >B work
                         length--;
                      }
                 }else{
                     strncpy(file_name, array[arrayIndex + 1], 512); //get b for filename
 
                     if(position != 0){
+
                         free(array[arrayIndex + 1]);
-                        strncpy(array[arrayIndex], temp, strlen(temp) - 1);
+                        int j = 0;
+                         for (j = 0; temp[j] != '>'; ++j) {
+                            array[arrayIndex][j] = temp[j];
+                         }
+                         array[arrayIndex][j] = '\0';
                         length--;
-                        //A> B
+                        //A> B  does not work
                     }else{
                         free(array[arrayIndex]);
                         free(array[arrayIndex + 1]);
                         length = length - 2;
-                        //A > B
+                        //A > B work
                     }
                 }
+                //for each string
                 for(int i = 0; i < length; i++){
-                    tempArray[i] = malloc(sizeof(strlen(array[i])));
-                    strncpy(tempArray[i], array[i], strlen(array[i]));
+                    tempArray[i] = malloc(sizeof(strlen(array[i]) + 1));
+                    int j;
+
+                    for (j = 0; array[i][j] != '\0'; ++j) {
+                        tempArray[i][j] = array[i][j];
+                    }
+                    tempArray[i][j] = '\0';
+
+                    //strncpy(tempArray[i], array[i], strlen(array[i]));
+                    //tempArray[strlen(array[i])] = '\0';
+                    //strncat(tempArray[i], "\0", 2);
+
+
+
+
                 }
                 for(int i = 0; i < length; i++){
                     free(array[i]); //have to free more based on choices
@@ -128,43 +152,43 @@ void turtle_mode(){
                 array = tempArray;
 
                 for(int i = 0; i < length; i++){
-                    printf("_%s_\n", array[i]); //have to free more based on choices
+                    printf("arr:_%s_\n", array[i]); //have to free more based on choices
                 }
-                printf("_%s_\n", file_name);
+                printf("file:_%s_\n", file_name);
+                free(temp);
                 
             }
 
-            pid_t pid = fork();
-            int status;
-
-            pid_t wait;
-            if(pid == 0){
+            //pid_t pid = fork();
+            //int status;
+            //if(pid == 0){
                 //Child
-                if(det == 1){
-                    close(STDOUT_FILENO);
-                    int desc = open(file_name,O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
-                    if(dup2(desc, STDIN_FILENO) < 0) {
+            //    if(det == 1){
+            //        close(STDOUT_FILENO);
+            //        int desc = open(file_name,O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+            //        if(dup2(desc, STDIN_FILENO) < 0) {
                         //Is this the correct error?
-                        printf("Cannot write to file %s.\n", file_name);
-                    }
-                }
-                execvp(array[0], array);
-                _exit(0);
+            //            printf("Cannot write to file %s.\n", file_name);
+            //        }
+            //    }
+            //    execvp(array[0], array);
+            //    _exit(0);
 
-            }else if(pid <0){
+            //}else if(pid <0){
                 //Error 
-                exit(1);
-            }else{
-                do {
-                    wait = waitpid(pid, &status, 0);
-                } while (!WIFSIGNALED(status) && !WIFEXITED(status));
-            }
+            //    exit(1);
+            //}else{
+            //    do {
+            //        waitpid(pid, &status, 0);
+            //    } while (!WIFSIGNALED(status) && !WIFEXITED(status));
+            //}
         }
 
         for(int i = 0; i<sizeof(array); i++){
                 array[i] = NULL;
         }
         free(array);
+        free(token);
 
        // open(STDOUT_FILENO);
     }while(exit_found == 0);
@@ -186,13 +210,13 @@ void bachelorette_mode(char *file){
     while ((fgets(buf, sizeof(buf), fp) != NULL) && (exit == 0)){
         int length = 0;
         const char delim[2] = " ";
-        char *token = malloc(sizeof(buf));
+        char *token = malloc(sizeof(buf) + 1);
         char **array = malloc(sizeof(char *));
         buf[strcspn(buf, "\n")] = 0;
         token = strtok(buf, delim);
 
         while(token != NULL) {
-            array[length] = malloc(sizeof(token));
+            array[length] = malloc(sizeof(token) );
             array[length] = strdup(token);
             token = strtok(NULL, delim);
             length++;
@@ -202,7 +226,6 @@ void bachelorette_mode(char *file){
         }else{
             pid_t pid = fork();
             int status;
-            pid_t wait;
             if(pid == 0){
                 //Child
                 execvp(array[0], array);
@@ -213,7 +236,7 @@ void bachelorette_mode(char *file){
                 _exit(1);
             }else{
                 do {
-                    wait = waitpid(pid, &status, 0);
+                    waitpid(pid, &status, 0);
                 } while (!WIFSIGNALED(status) && !WIFEXITED(status));
             }
         }

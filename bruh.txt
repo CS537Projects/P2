@@ -1,1 +1,9 @@
-viuhiuhiurhbiuerwh
+Makefile
+a.out
+a.out.dSYM
+bruh
+bruh.txt
+mysh
+mysh.c
+mysh.dSYM
+text.txt
