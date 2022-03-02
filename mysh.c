@@ -11,14 +11,6 @@
 //          V
 // https://brennan.io/2015/01/16/write-a-shell-in-c/
 
-void detour(char* fileName){
-    close(STDOUT_FILENO);
-    int desc = open(fileName, O_CREAT|O_WRONLY|O_TRUNC, S_IRWXU);
-    if(dup2(desc, STDIN_FILENO) < 0) {
-        //Is this the correct error?
-        printf("Cannot write to file %s.\n", fileName);
-    }
-}
 
 void turtle_mode(){
     int exit_found = 0;
@@ -40,10 +32,6 @@ void turtle_mode(){
             strncpy(array[length], token, strlen(token));
             token = strtok(NULL, delim);
             length++;
-        }
-
-        for(int i = 0; i < length; i++){
-            printf("%s\n", array[i]);
         }
 
         if(strncmp(array[0], "exit",512) == 0){
@@ -68,7 +56,6 @@ void turtle_mode(){
             for(int i = 0; i < length; i++){
                 int temp = strcspn(array[i],comparison);
                 if(temp < strlen(array[i])){
-                    write(1, "> detected\n", 12);
                     counter++;
                     arrayIndex = i;
                     position = temp;
@@ -78,6 +65,7 @@ void turtle_mode(){
             char file_name[512];
             int det = 0;
             if(counter != 0){
+                det = 1;
 
                 // more than one > 
                 // there is nothing after > 
@@ -99,10 +87,6 @@ void turtle_mode(){
                 //There is something after > in the same string
                 if(position != strlen(array[arrayIndex]) - 1){
 
-            
-
-                     
-                     det = 1;
                      
                      //get b for file name
                      if(position != 0){
@@ -110,11 +94,7 @@ void turtle_mode(){
                          token = strtok(NULL, comparison);
                          strncpy(file_name, token, strlen(token));
                          //change string in array to just A
-                         printf("here3\n");
-                         printf("token:%s, filename:%s, arrayindexsize:%lu\n", token, file_name, strlen(array[arrayIndex]));
-                         printf("tokenlength: %ld\n", strlen(token));
                          strncpy(array[arrayIndex], temp, strlen(temp));
-                         printf("here4\n");
                          //A>B
                      }else{
                          token = strtok(temp, comparison);
