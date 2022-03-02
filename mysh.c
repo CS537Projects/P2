@@ -12,35 +12,34 @@
 //          V
 // https://brennan.io/2015/01/16/write-a-shell-in-c/
 
+void Kcopy(char* from, char* to){
+    int j = 0;
+    for (j = 0; from[j] != '\0'; ++j) {
+        to[j] = from[j];
+    }
+    to[j] = '\0';
+}
+
 
 void turtle_mode(){
     int exit_found = 0;
-    //char *temp;
     do{
         const char delim[2] = " ";
         char buf[512];
         char **array = malloc(sizeof(char *) * sizeof(char**));
-
         write(1, "> ", 3);
         fgets(buf, sizeof buf, stdin);
         buf[strcspn(buf, "\n")] = 0;
         char* token = strtok(buf, delim);
-
         int length = 0;
         while(token != NULL) {
             array[length] = malloc(sizeof(token) + 1);
-
-            int j = 0;
-            for (j = 0; token[j] != '\0'; ++j) {
-                array[length][j] = token[j];
-            }
-            array[length][j] = '\0';
-
+            Kcopy(token, array[length]);
             token = strtok(NULL, delim);
             length++;
         }
-
-        if(strncmp(array[0], "exit",512) == 0){
+        if(strlen(buf) == 0){
+        }else if(strncmp(array[0], "exit",512) == 0){
             exit_found = 1;
         }else if(strncmp(array[0], "alias",512) == 0){
             write(1, "alias detected\n", 16);
@@ -50,14 +49,6 @@ void turtle_mode(){
                 int arrayIndex = -1; //index in array where < is found
                 int position = -1; //index inside of string where < is found
                 int counter = 0;
-
-                //for each thing in array
-                    //index of >>
-                    //if theres two, throw error
-                    //if only one
-                        //check to see if its the only char in array and in correct spacing
-                            //if it is, open file, change two in array too ""
-                        //if < is not last char in string,
             const char comparison[] = ">";
             for(int i = 0; i < length; i++){
                 int temp = strcspn(array[i],comparison);
@@ -67,12 +58,10 @@ void turtle_mode(){
                     position = temp;
                 }
             }
-
             char file_name[512];
             int det = 0;
             if(counter != 0){
                 det = 1;
-
                 // more than one > 
                 // there is nothing after > 
                 // there is something after > and another array position
@@ -83,59 +72,28 @@ void turtle_mode(){
                     || (arrayIndex < length - 2)){
                     write(1, "Redirection misformatted.\n", 27);
                 }
-                
                 char **tempArray = malloc(sizeof(char *) * length * sizeof(char**));
                 char *temp = malloc(sizeof(array[arrayIndex]));
-                
-
-                int j = 0;
-                for (j = 0; array[arrayIndex][j] != '\0'; ++j) {
-                    temp[j] = array[arrayIndex][j];
-                }
-                temp[j] = '\0';
-
+                Kcopy(array[arrayIndex], temp);
                 //There is something after > in the same string
                 if(position != strlen(array[arrayIndex]) - 1){
-
-                     
                      //get b for file name
                      if(position != 0){
                          token = strtok(temp, comparison);
                          token = strtok(NULL, comparison);
-
-                         int j = 0;
-                         for (j = 0; token[j] != '\0'; ++j) {
-                            file_name[j] = token[j];
-                         }
-                         file_name[j] = '\0';
-
-                         j = 0;
-                         for (j = 0; temp[j] != '\0'; ++j) {
-                            array[arrayIndex][j] = temp[j];
-                         }
-                         array[arrayIndex][j] = '\0';
+                         Kcopy(token, file_name);
+                         Kcopy(temp, array[arrayIndex]);
                          //A>B  works
                      }else{
                          token = strtok(temp, comparison);
-                         int j = 0;
-                         for (j = 0; token[j] != '\0'; ++j) {
-                            file_name[j] = token[j];
-                         }
-                         file_name[j] = '\0';
-
+                         Kcopy(token, file_name);
                          free(array[arrayIndex]);
                          //A >B work
                         length--;
                      }
                 }else{
-                    int j = 0;
-                    for (j = 0; array[arrayIndex + 1][j] != '\0'; ++j) {
-                        file_name[j] = array[arrayIndex + 1][j];
-                    }
-                    file_name[j] = '\0';
-
+                    Kcopy(array[arrayIndex + 1], file_name);
                     if(position != 0){
-
                         free(array[arrayIndex + 1]);
                         int j = 0;
                          for (j = 0; temp[j] != '>'; ++j) {
@@ -154,27 +112,19 @@ void turtle_mode(){
                 //for each string
                 for(int i = 0; i < length; i++){
                     tempArray[i] = malloc(sizeof(strlen(array[i])));
-                    int j;
-
-                    for (j = 0; array[i][j] != '\0'; ++j) {
-                        tempArray[i][j] = array[i][j];
-                    }
-                    tempArray[i][j] = '\0';
+                    Kcopy(array[i], tempArray[i]);
                 }
                 for(int i = 0; i < length; i++){
                     free(array[i]); //have to free more based on choices
                 }
                 free(array);
                 array = tempArray;
-
                 for(int i = 0; i < length; i++){
                     printf("arr:_%s_\n", array[i]); //have to free more based on choices
                 }
                 printf("file:_%s_\n", file_name);
-                free(temp);
-                
+                free(temp); 
             }
-            //open
             pid_t pid = fork();
             int status;
             if(pid == 0){
@@ -195,7 +145,6 @@ void turtle_mode(){
                     execvp(array[0], array);
                 }
                 _exit(0);
-
             }else if(pid <0){
                 //Error 
                 _exit(1);
@@ -203,47 +152,34 @@ void turtle_mode(){
                 do {
                     waitpid(pid, &status, 0);
                 } while (!WIFSIGNALED(status) && !WIFEXITED(status));
-                //close
             }
         }
-
-        for(int i = 0; i<sizeof(array); i++){
+        for(int i = 0; i<length; i++){
                 free(array[i]);
         }
         free(array);
-        free(token);
-
-       // open(STDOUT_FILENO);
+        //free(token); 
     }while(exit_found == 0);
     _exit(0);
 }
 
-void bachelorette_mode(char *file){
-    
-    
-    
+void bachelorette_mode(char *file){   
     FILE *fp = fopen(file, "r");
         if (fp == NULL) {
-        printf("my-look: cannot open file\n");
-        _exit(1);
-    }
+            write(STDERR_FILENO, "Error: Cannot open file.\n", 26);
+            _exit(1);
+        }
     int exit_found = 0;
-    const char delim[2] = " ";
     char buf[512];
-    char **array = malloc(sizeof(char *) * sizeof(char**));
-
     while ((fgets(buf, sizeof(buf), fp) != NULL) && (exit_found == 0)){
+        const char delim[2] = " ";
+        char **array = malloc(sizeof(char *) * sizeof(char**));
         buf[strcspn(buf, "\n")] = 0;
         char *token = strtok(buf, delim);
-
         int length = 0;
         while(token != NULL) {
             array[length] = malloc(sizeof(token) + 1);
-            int j = 0;
-            for (j = 0; token[j] != '\0'; ++j) {
-                array[length][j] = token[j];
-            }
-            array[length][j] = '\0';
+            Kcopy(token, array[length]);
             token = strtok(NULL, delim);
             length++;
         }
@@ -257,14 +193,6 @@ void bachelorette_mode(char *file){
                 int arrayIndex = -1; //index in array where < is found
                 int position = -1; //index inside of string where < is found
                 int counter = 0;
-
-                //for each thing in array
-                    //index of >>
-                    //if theres two, throw error
-                    //if only one
-                        //check to see if its the only char in array and in correct spacing
-                            //if it is, open file, change two in array too ""
-                        //if < is not last char in string,
             const char comparison[] = ">";
             for(int i = 0; i < length; i++){
                 int temp = strcspn(array[i],comparison);
@@ -274,12 +202,10 @@ void bachelorette_mode(char *file){
                     position = temp;
                 }
             }
-
             char file_name[512];
             int det = 0;
             if(counter != 0){
                 det = 1;
-
                 // more than one > 
                 // there is nothing after > 
                 // there is something after > and another array position
@@ -290,59 +216,27 @@ void bachelorette_mode(char *file){
                     || (arrayIndex < length - 2)){
                     write(1, "Redirection misformatted.\n", 27);
                 }
-                
                 char **tempArray = malloc(sizeof(char *) * length * sizeof(char**));
                 char *temp = malloc(sizeof(array[arrayIndex]));
-                
-
-                int j = 0;
-                for (j = 0; array[arrayIndex][j] != '\0'; ++j) {
-                    temp[j] = array[arrayIndex][j];
-                }
-                temp[j] = '\0';
-
+                Kcopy(array[arrayIndex], temp);
                 //There is something after > in the same string
                 if(position != strlen(array[arrayIndex]) - 1){
-
-                     
-                     //get b for file name
                      if(position != 0){
                          token = strtok(temp, comparison);
                          token = strtok(NULL, comparison);
-
-                         int j = 0;
-                         for (j = 0; token[j] != '\0'; ++j) {
-                            file_name[j] = token[j];
-                         }
-                         file_name[j] = '\0';
-
-                         j = 0;
-                         for (j = 0; temp[j] != '\0'; ++j) {
-                            array[arrayIndex][j] = temp[j];
-                         }
-                         array[arrayIndex][j] = '\0';
-                         //A>B  works
+                         Kcopy(token, file_name);
+                         Kcopy(temp, array[arrayIndex]);
+                         //A>B
                      }else{
                          token = strtok(temp, comparison);
-                         int j = 0;
-                         for (j = 0; token[j] != '\0'; ++j) {
-                            file_name[j] = token[j];
-                         }
-                         file_name[j] = '\0';
-
+                         Kcopy(token, file_name);
                          free(array[arrayIndex]);
-                         //A >B work
-                        length--;
+                         length--;
+                         //A >B
                      }
                 }else{
-                    int j = 0;
-                    for (j = 0; array[arrayIndex + 1][j] != '\0'; ++j) {
-                        file_name[j] = array[arrayIndex + 1][j];
-                    }
-                    file_name[j] = '\0';
-
+                    Kcopy(array[arrayIndex + 1], file_name);
                     if(position != 0){
-
                         free(array[arrayIndex + 1]);
                         int j = 0;
                          for (j = 0; temp[j] != '>'; ++j) {
@@ -350,34 +244,24 @@ void bachelorette_mode(char *file){
                          }
                          array[arrayIndex][j] = '\0';
                         length--;
-                        //A> B  does not work
+                        //A> B
                     }else{
                         free(array[arrayIndex]);
                         free(array[arrayIndex + 1]);
                         length = length - 2;
-                        //A > B work
+                        //A > B
                     }
                 }
                 //for each string
                 for(int i = 0; i < length; i++){
                     tempArray[i] = malloc(sizeof(strlen(array[i])));
-                    int j;
-
-                    for (j = 0; array[i][j] != '\0'; ++j) {
-                        tempArray[i][j] = array[i][j];
-                    }
-                    tempArray[i][j] = '\0';
+                    Kcopy(array[i], tempArray[i]);
                 }
                 for(int i = 0; i < length; i++){
-                    free(array[i]); //have to free more based on choices
+                    free(array[i]);
                 }
                 free(array);
                 array = tempArray;
-
-                for(int i = 0; i < length; i++){
-                    printf("arr:_%s_\n", array[i]); //have to free more based on choices
-                }
-                printf("file:_%s_\n", file_name);
                 free(temp);
                 
             }
@@ -414,7 +298,7 @@ void bachelorette_mode(char *file){
             }
         }
 
-        for(int i = 0; i<sizeof(array); i++){
+        for(int i = 0; i < length; i++){
                 free(array[i]);
         }
         free(array);
@@ -424,9 +308,7 @@ void bachelorette_mode(char *file){
     _exit(0);
 
 } 
-
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     if(argc == 1){
         //shell mode
         turtle_mode();
@@ -434,9 +316,8 @@ int main(int argc, char **argv)
         //batch mode
         bachelorette_mode(argv[1]);
     }else{
-        //ERROR
+        write(STDERR_FILENO, "Usage: mysh [batch-file]\n", 26);
+        _exit(1);
     }
-  // Perform any shutdown/cleanup.
-
   return 0;
 }
