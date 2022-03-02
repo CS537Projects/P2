@@ -20,7 +20,7 @@ void turtle_mode(){
         const char delim[2] = " ";
         char buf[512];
         char *token = malloc(sizeof(buf));
-        char **array = malloc(sizeof(char *));
+        char **array = malloc(sizeof(char *) * sizeof(char**));
 
         write(1, "> ", 3);
         fgets(buf, sizeof buf, stdin);
@@ -29,8 +29,14 @@ void turtle_mode(){
 
         int length = 0;
         while(token != NULL) {
-            array[length] = malloc(sizeof(token));
-            strncpy(array[length], token, strlen(token));
+            array[length] = malloc(sizeof(token) + 1);
+
+            int j = 0;
+            for (j = 0; token[j] != '\0'; ++j) {
+                array[length][j] = token[j];
+            }
+            array[length][j] = '\0';
+
             token = strtok(NULL, delim);
             length++;
         }
@@ -79,10 +85,15 @@ void turtle_mode(){
                     write(1, "Redirection misformatted.\n", 27);
                 }
                 
-                char **tempArray = malloc(sizeof(char *) * length);
+                char **tempArray = malloc(sizeof(char *) * length * sizeof(char**));
                 char *temp = malloc(sizeof(array[arrayIndex]));
-                     
-                strncpy(temp, array[arrayIndex], strlen(array[arrayIndex]));
+                
+
+                int j = 0;
+                for (j = 0; array[arrayIndex][j] != '\0'; ++j) {
+                    temp[j] = array[arrayIndex][j];
+                }
+                temp[j] = '\0';
 
                 //There is something after > in the same string
                 if(position != strlen(array[arrayIndex]) - 1){
@@ -93,8 +104,13 @@ void turtle_mode(){
                          token = strtok(temp, comparison);
                          token = strtok(NULL, comparison);
 
-                         strncpy(file_name, token, strlen(token));
                          int j = 0;
+                         for (j = 0; token[j] != '\0'; ++j) {
+                            file_name[j] = token[j];
+                         }
+                         file_name[j] = '\0';
+
+                         j = 0;
                          for (j = 0; temp[j] != '\0'; ++j) {
                             array[arrayIndex][j] = temp[j];
                          }
@@ -102,13 +118,22 @@ void turtle_mode(){
                          //A>B  works
                      }else{
                          token = strtok(temp, comparison);
-                         strncpy(file_name, token, strlen(token));
+                         int j = 0;
+                         for (j = 0; token[j] != '\0'; ++j) {
+                            file_name[j] = token[j];
+                         }
+                         file_name[j] = '\0';
+
                          free(array[arrayIndex]);
                          //A >B work
                         length--;
                      }
                 }else{
-                    strncpy(file_name, array[arrayIndex + 1], 512); //get b for filename
+                    int j = 0;
+                    for (j = 0; array[arrayIndex + 1][j] != '\0'; ++j) {
+                        file_name[j] = array[arrayIndex + 1][j];
+                    }
+                    file_name[j] = '\0';
 
                     if(position != 0){
 
@@ -136,14 +161,6 @@ void turtle_mode(){
                         tempArray[i][j] = array[i][j];
                     }
                     tempArray[i][j] = '\0';
-
-                    //strncpy(tempArray[i], array[i], strlen(array[i]));
-                    //tempArray[strlen(array[i])] = '\0';
-                    //strncat(tempArray[i], "\0", 2);
-
-
-
-
                 }
                 for(int i = 0; i < length; i++){
                     free(array[i]); //have to free more based on choices
@@ -188,14 +205,13 @@ void turtle_mode(){
                 array[i] = NULL;
         }
         free(array);
-        free(token);
 
        // open(STDOUT_FILENO);
     }while(exit_found == 0);
     _exit(0);
 }
 
-void bachelorette_mode(char *file){
+/* void bachelorette_mode(char *file){
     
     
     
@@ -248,7 +264,7 @@ void bachelorette_mode(char *file){
     } 
     fclose(fp);
 
-}
+} */
 
 int main(int argc, char **argv)
 {
@@ -257,7 +273,7 @@ int main(int argc, char **argv)
         turtle_mode();
     }else if(argc == 2){
         //batch mode
-        bachelorette_mode(argv[1]);
+        //bachelorette_mode(argv[1]);
     }else{
         //ERROR
     }
