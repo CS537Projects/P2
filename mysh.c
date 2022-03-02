@@ -12,6 +12,51 @@
 //          V
 // https://brennan.io/2015/01/16/write-a-shell-in-c/
 
+struct node {
+    struct node* child;
+    char name[512];
+    char arg[512];
+};
+
+struct node* head = NULL;
+
+void store_alias(char *name, char *val){
+    struct node *addNode = (struct node*) malloc(sizeof(struct node));
+    strcpy(addNode->name, name);
+    strcpy(addNode->arg, val);
+    if(head!= NULL){
+        addNode->child = head->child;
+    }
+    head = addNode;
+}
+
+int search_alias(char *name, struct node *curr){
+    if(strcasecmp(curr->name, name) == 0){
+        return 1;
+    }
+    
+    if(curr-> child == NULL){
+        return 0;
+    }
+
+    return 0;
+}
+
+int unalias(char *name, struct node *curr){
+    if(curr-> child == NULL){
+        return 0;
+    }
+
+    if(strcasecmp(curr->child->name, name) == 0){
+        struct node *removeNode = curr->child;
+        curr->child = curr->child->child;
+        free(removeNode);
+        return 1;
+    }
+
+    return 0;
+}
+
 void Kcopy(char* from, char* to){
     int j = 0;
     for (j = 0; from[j] != '\0'; ++j) {
