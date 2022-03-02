@@ -14,18 +14,17 @@
 
 
 void turtle_mode(){
-    int exit_found = 1;
+    int exit_found = 0;
     //char *temp;
     do{
         const char delim[2] = " ";
         char buf[512];
-        char *token = malloc(sizeof(buf));
         char **array = malloc(sizeof(char *) * sizeof(char**));
 
         write(1, "> ", 3);
         fgets(buf, sizeof buf, stdin);
         buf[strcspn(buf, "\n")] = 0;
-        token = strtok(buf, delim);
+        char* token = strtok(buf, delim);
 
         int length = 0;
         while(token != NULL) {
@@ -154,7 +153,7 @@ void turtle_mode(){
                 }
                 //for each string
                 for(int i = 0; i < length; i++){
-                    tempArray[i] = malloc(sizeof(strlen(array[i]) + 1));
+                    tempArray[i] = malloc(sizeof(strlen(array[i])));
                     int j;
 
                     for (j = 0; array[i][j] != '\0'; ++j) {
@@ -175,36 +174,44 @@ void turtle_mode(){
                 free(temp);
                 
             }
-
-            //pid_t pid = fork();
-            //int status;
-            //if(pid == 0){
+            //open
+            pid_t pid = fork();
+            int status;
+            if(pid == 0){
                 //Child
-            //    if(det == 1){
-            //        close(STDOUT_FILENO);
-            //        int desc = open(file_name,O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
-            //        if(dup2(desc, STDIN_FILENO) < 0) {
+                if(det == 1){
+                    int saved_stdout = dup(1);
+                    close(STDOUT_FILENO);
+                    int desc = open(file_name,O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+                    if(dup2(desc, STDIN_FILENO) < 0) {
                         //Is this the correct error?
-            //            printf("Cannot write to file %s.\n", file_name);
-            //        }
-            //    }
-            //    execvp(array[0], array);
-            //    _exit(0);
+                        printf("Cannot write to file %s.\n", file_name);
+                    }
+                    execvp(array[0], array);
+                    close(desc);
+                    dup2(saved_stdout, 1);
+                    close(saved_stdout);
+                }else{
+                    execvp(array[0], array);
+                }
+                _exit(0);
 
-            //}else if(pid <0){
+            }else if(pid <0){
                 //Error 
-            //    exit(1);
-            //}else{
-            //    do {
-            //        waitpid(pid, &status, 0);
-            //    } while (!WIFSIGNALED(status) && !WIFEXITED(status));
-            //}
+                _exit(1);
+            }else{
+                do {
+                    waitpid(pid, &status, 0);
+                } while (!WIFSIGNALED(status) && !WIFEXITED(status));
+                //close
+            }
         }
 
         for(int i = 0; i<sizeof(array); i++){
-                array[i] = NULL;
+                free(array[i]);
         }
         free(array);
+        free(token);
 
        // open(STDOUT_FILENO);
     }while(exit_found == 0);
