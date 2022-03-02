@@ -119,12 +119,10 @@ void turtle_mode(){
                 }
                 free(array);
                 array = tempArray;
-                for(int i = 0; i < length; i++){
-                    printf("arr:_%s_\n", array[i]); //have to free more based on choices
-                }
-                printf("file:_%s_\n", file_name);
                 free(temp); 
             }
+
+
             pid_t pid = fork();
             int status;
             if(pid == 0){
@@ -166,7 +164,7 @@ void turtle_mode(){
 void bachelorette_mode(char *file){   
     FILE *fp = fopen(file, "r");
         if (fp == NULL) {
-            write(STDERR_FILENO, "Error: Cannot open file.\n", 26);
+            fprintf(stderr,"Error: Cannot open file %s.\n", file);
             _exit(1);
         }
     int exit_found = 0;
@@ -182,6 +180,14 @@ void bachelorette_mode(char *file){
             Kcopy(token, array[length]);
             token = strtok(NULL, delim);
             length++;
+        }
+        for(int i = 0; i < length; i++){
+            write(1, array[i], strlen(array[i]));
+            if(i != length - 1){
+                write(1, " ", 1);
+            }else{
+                write(1, "\n", 1);
+            }
         }
         if(strncmp(array[0], "exit",512) == 0){
             exit_found = 1;
@@ -316,8 +322,8 @@ int main(int argc, char **argv) {
         //batch mode
         bachelorette_mode(argv[1]);
     }else{
-        write(STDERR_FILENO, "Usage: mysh [batch-file]\n", 26);
-        _exit(1);
+        write(STDERR_FILENO, "Usage: mysh [batch-file]\n", 25);
+        exit(1);
     }
   return 0;
 }
