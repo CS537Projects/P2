@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/wait.h>
+#include <ctype.h>
 //mysh.c
 
 //This literally is pretty much what we need to do, 
@@ -11,6 +12,16 @@
 //          I
 //          V
 // https://brennan.io/2015/01/16/write-a-shell-in-c/
+
+int isEmpty(char* phrase){
+    int length = strlen(phrase);
+    for(int i = 0; i< length; i++){
+        if(!isspace(phrase[i])){
+            return 0;
+        }
+    }
+    return 1;
+}
 
 struct node {
     struct node* child;
@@ -43,6 +54,13 @@ int search_alias(char *name, struct node *curr){
 }
 
 int unalias(char *name, struct node *curr){
+    if(strcasecmp(head->name, name)){
+        struct node *removeNode = head;
+        head = head->child;
+        free(removeNode);
+        return 1;
+    }
+
     if(curr-> child == NULL){
         return 0;
     }
@@ -72,8 +90,12 @@ void turtle_mode(){
         const char delim[2] = " ";
         char buf[512];
         char **array = malloc(sizeof(char *) * sizeof(char**));
-        write(1, "> ", 3);
-        fgets(buf, sizeof buf, stdin);
+        write(1, "mysh> ", 6);
+        if(fgets(buf, sizeof buf, stdin) == NULL){
+            exit_found = 1;
+            continue;
+        }
+        
         buf[strcspn(buf, "\n")] = 0;
         char* token = strtok(buf, delim);
         int length = 0;
@@ -83,11 +105,14 @@ void turtle_mode(){
             token = strtok(NULL, delim);
             length++;
         }
+        array[length] = NULL;
         if(strlen(buf) == 0){
         }else if(strncmp(array[0], "exit",512) == 0){
             exit_found = 1;
         }else if(strncmp(array[0], "alias",512) == 0){
             write(1, "alias detected\n", 16);
+            store_alias(array[1], array[2]);
+
         }else if(strncmp(array[0], "unalias",512) == 0){
             write(1, "unalias detected\n", 18);
         }else{
@@ -115,7 +140,8 @@ void turtle_mode(){
                     || (position == strlen(array[arrayIndex]) - 1 && arrayIndex == length - 1) 
                     || (position != strlen(array[arrayIndex]) - 1 && arrayIndex != length - 1)
                     || (arrayIndex < length - 2)){
-                    write(1, "Redirection misformatted.\n", 27);
+                    write(2, "Redirection misformatted.\n", 26);
+                    continue;
                 }
                 char **tempArray = malloc(sizeof(char *) * length * sizeof(char**));
                 char *temp = malloc(sizeof(array[arrayIndex]));
@@ -216,7 +242,7 @@ void bachelorette_mode(char *file){
     char buf[512];
     while ((fgets(buf, sizeof(buf), fp) != NULL) && (exit_found == 0)){
         const char delim[2] = " ";
-        char **array = malloc(sizeof(char *) * sizeof(char**));
+        char **array = malloc(64);
         buf[strcspn(buf, "\n")] = 0;
         char *token = strtok(buf, delim);
         int length = 0;
@@ -226,6 +252,7 @@ void bachelorette_mode(char *file){
             token = strtok(NULL, delim);
             length++;
         }
+        array[length] = NULL;
         for(int i = 0; i < length; i++){
             write(1, array[i], strlen(array[i]));
             if(i != length - 1){
@@ -265,7 +292,8 @@ void bachelorette_mode(char *file){
                     || (position == strlen(array[arrayIndex]) - 1 && arrayIndex == length - 1) 
                     || (position != strlen(array[arrayIndex]) - 1 && arrayIndex != length - 1)
                     || (arrayIndex < length - 2)){
-                    write(1, "Redirection misformatted.\n", 27);
+                    write(2, "Redirection misformatted.\n", 26);
+                    continue;
                 }
                 char **tempArray = malloc(sizeof(char *) * length * sizeof(char**));
                 char *temp = malloc(sizeof(array[arrayIndex]));
@@ -323,20 +351,32 @@ void bachelorette_mode(char *file){
                 //Child
                 if(det == 1){
                     int saved_stdout = dup(1);
-                    close(STDOUT_FILENO);
-                    int desc = open(file_name,O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
-                    if(dup2(desc, STDIN_FILENO) < 0) {
+
+                    if(isEmpty(file_name)){
+                        fprintf(stderr, "Redirection misformatted.\n");
+                        exit(1);
+                        //continue;
+                    }else{
+                        close(STDOUT_FILENO);
+                        int desc = open(file_name,O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+                        if(dup2(desc, STDIN_FILENO) < 0) {
                         //Is this the correct error?
                         printf("Cannot write to file %s.\n", file_name);
+                        }
+                        execvp(array[0], array);
+                        fprintf(stderr, "%s: Command not found.\n", array[0]);
+                         close(desc);
+                         dup2(saved_stdout, 1);
+                         close(saved_stdout);
+                        _exit(1);
                     }
-                    execvp(array[0], array);
-                    close(desc);
-                    dup2(saved_stdout, 1);
-                    close(saved_stdout);
+                    
                 }else{
                     execvp(array[0], array);
+                    fprintf(stderr, "%s: Command not found.\n", array[0]);
+                    _exit(1);
                 }
-                _exit(0);
+                
 
             }else if(pid <0){
                 //Error 
@@ -348,7 +388,7 @@ void bachelorette_mode(char *file){
                 //close
             }
         }
-
+        
         for(int i = 0; i < length; i++){
                 free(array[i]);
         }
