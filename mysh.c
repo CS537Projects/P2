@@ -13,6 +13,7 @@
 //          V
 // https://brennan.io/2015/01/16/write-a-shell-in-c/
 
+<<<<<<< HEAD
 int isEmpty(char* phrase){
     int length = strlen(phrase);
     for(int i = 0; i< length; i++){
@@ -86,6 +87,8 @@ int unalias(char *name, struct node *curr){
     return 0;
 }
 
+=======
+>>>>>>> parent of a2a39e5... Untested alias
 void Kcopy(char* from, char* to){
     int j = 0;
     for (j = 0; from[j] != '\0'; ++j) {
