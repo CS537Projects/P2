@@ -97,12 +97,36 @@ int unalias(char *name, struct node *curr){
     return 0;
 }
 
+=======
+>>>>>>> parent of a2a39e5... Untested alias
+=======
+>>>>>>> parent of a2a39e5... Untested alias
+=======
+>>>>>>> parent of a2a39e5... Untested alias
+=======
+>>>>>>> parent of a2a39e5... Untested alias
 void Kcopy(char* from, char* to){
     int j = 0;
     for (j = 0; from[j] != '\0'; ++j) {
         to[j] = from[j];
     }
     to[j] = '\0';
+}
+
+void Ktrim(char* string){
+    int counter = 0;
+    for (int i = 0; string[i] != '\0'; ++i) {
+        if(!isspace(string[i])){
+            string[counter] = string[i];
+            counter++;
+        }else{
+            if(!isspace(string[i+1])){
+                string[counter] = ' ';
+                counter++; 
+            }
+        }
+    }
+    string[counter] = '\0';
 }
 
 
@@ -119,6 +143,7 @@ void turtle_mode(){
         }
         
         buf[strcspn(buf, "\n")] = 0;
+        Ktrim(buf);
         char* token = strtok(buf, delim);
         int length = 0;
         while(token != NULL) {
@@ -292,6 +317,7 @@ void bachelorette_mode(char *file){
         const char delim[2] = " ";
         char **array = malloc(64);
         buf[strcspn(buf, "\n")] = 0;
+        Ktrim(buf);
         char *token = strtok(buf, delim);
         int length = 0;
         while(token != NULL) {
