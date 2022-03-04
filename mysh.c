@@ -14,12 +14,15 @@
 // https://brennan.io/2015/01/16/write-a-shell-in-c/
 
 int isEmpty(char* phrase){
+    //printf("in herer\n");
     int length = strlen(phrase);
+    //printf("in herer2\n");
     for(int i = 0; i< length; i++){
         if(!isspace(phrase[i])){
             return 0;
         }
     }
+    //printf("in herer3\n");
     return 1;
 }
 
@@ -50,11 +53,19 @@ int search_alias(char *name, struct node *curr){
     return 0;
 }
 
-
 void store_alias(char *name, char *val){
     if(search_alias(name,head)==0){
         return;
     }
+
+    char danger1[] = "alias";
+    char danger2[] = "unalias";
+    char danger3[] = "exit";
+
+    if((strcasecmp(danger1, name)==0) || (strcasecmp(danger2, name)==0) || (strcasecmp(danger3, name)==0)){
+        return;
+    }
+
     struct node *addNode = (struct node*) malloc(sizeof(struct node));
     strcpy(addNode->name, name);
     strcpy(addNode->arg, val);
@@ -129,6 +140,7 @@ void turtle_mode(){
 
         }else if(strncmp(array[0], "unalias",512) == 0){
             write(1, "unalias detected\n", 18);
+            unalias(array[1], head);
         }else{
                 int arrayIndex = -1; //index in array where < is found
                 int position = -1; //index inside of string where < is found
@@ -210,24 +222,45 @@ void turtle_mode(){
 
             pid_t pid = fork();
             int status;
-            if(pid == 0){
+           if(pid == 0){
                 //Child
                 if(det == 1){
-                    int saved_stdout = dup(1);
-                    close(STDOUT_FILENO);
-                    int desc = open(file_name,O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
-                    if(dup2(desc, STDOUT_FILENO) < 0) {
+                    
+
+                    if(isEmpty(file_name)){
+                        fprintf(stderr, "Redirection misformatted.\n");
+                        exit(1);
+                        //continue;
+                    }else{
+                        //int saved_stdout = dup(1);
+                        //close(STDOUT_FILENO);
+                        int desc = open(file_name,O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+                        if(dup2(desc, STDOUT_FILENO) < 0) {
                         //Is this the correct error?
-                        printf("Cannot write to file %s.\n", file_name);
+                            printf("Cannot write to file %s.\n", file_name);
+                        }
+                        close(desc);
+                        if(!isEmpty(array[0])){
+                            execv(array[0], array);
+                            //Add alias check
+                            fprintf(stderr, "%s: Command not found.\n", array[0]);  
+                        }
+                       
+                        //dup2(saved_stdout, 1);
+                        //close(saved_stdout);
+                        _exit(1);
                     }
-                    execv(array[0], array);
-                    close(desc);
-                    dup2(saved_stdout, 1);
-                    close(saved_stdout);
+                    
                 }else{
-                    execv(array[0], array);
+                    if(!isEmpty(array[0])){
+                        execv(array[0], array);
+                        //Add alias check
+                        fprintf(stderr, "%s: Command not found.\n", array[0]);  
+                    }
+                    _exit(1);
                 }
-                _exit(0);
+                
+
             }else if(pid <0){
                 //Error 
                 _exit(1);
@@ -235,6 +268,7 @@ void turtle_mode(){
                 do {
                     waitpid(pid, &status, 0);
                 } while (!WIFSIGNALED(status) && !WIFEXITED(status));
+                //close
             }
         }
         for(int i = 0; i<length; i++){
@@ -278,9 +312,11 @@ void bachelorette_mode(char *file){
                 write(1, "\n", 1);
             }
         }
+       // printf("in herer1\n");
         if(isEmpty(array[0])){
             continue;
         }
+        
         if(strncmp(array[0], "exit",512) == 0){
             exit_found = 1;
         }else if(strncmp(array[0], "alias",512) == 0){
