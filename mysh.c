@@ -15,6 +15,7 @@
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 int isEmpty(char* phrase){
     int length = strlen(phrase);
     for(int i = 0; i< length; i++){
@@ -88,6 +89,8 @@ int unalias(char *name, struct node *curr){
     return 0;
 }
 
+=======
+>>>>>>> parent of a2a39e5... Untested alias
 =======
 >>>>>>> parent of a2a39e5... Untested alias
 =======
