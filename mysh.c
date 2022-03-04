@@ -50,6 +50,7 @@ int search_alias(char *name, struct node *curr){
     return 0;
 }
 
+
 void store_alias(char *name, char *val){
     if(search_alias(name,head)==0){
         return;
