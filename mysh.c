@@ -5,13 +5,6 @@
 #include <fcntl.h>
 #include <sys/wait.h>
 #include <ctype.h>
-//mysh.c
-
-//This literally is pretty much what we need to do, 
-//we can use this annd basically go through most of the project
-//          I
-//          V
-// https://brennan.io/2015/01/16/write-a-shell-in-c/
 
 int isEmpty(char* phrase){
     //printf("in herer\n");
@@ -34,12 +27,23 @@ void Kcopy(char* from, char* to){
     to[j] = '\0';
 }
 
-char* jump(char* command){
-    while(isspace(*command)) {
-        command++;
+int Ktrim(char* string){
+    int counter = 0;
+    for (int i = 0; string[i] != '\0'; ++i) {
+        if(!isspace(string[i])){
+            string[counter] = string[i];
+            counter++;
+        }else{
+            if(!isspace(string[i+1])){
+                string[counter] = ' ';
+                counter++; 
+            }
+        }
     }
-    return command;
+    string[counter] = '\0';
+    return counter;
 }
+
 
 struct node {
     struct node* child;
@@ -144,6 +148,10 @@ void turtle_mode(){
         }
         
         buf[strcspn(buf, "\n")] = 0;
+        int check = Ktrim(buf);
+        if(check == 1){
+            continue;
+        }
         char* token = strtok(buf, delim);
         int length = 0;
         while(token != NULL) {
@@ -309,6 +317,10 @@ void bachelorette_mode(char *file){
         const char delim[2] = " ";
         char **array = malloc(64);
         buf[strcspn(buf, "\n")] = 0;
+        int check = Ktrim(buf);
+        if(check == 1){
+            continue;
+        }
         char *token = strtok(buf, delim);
         int length = 0;
         while(token != NULL) {
