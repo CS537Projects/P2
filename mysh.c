@@ -17,15 +17,6 @@ int isEmpty(char* phrase){
     return 1;
 }
 
-// void Kcopy(char* from, char* to){
-//     int j = 0;
-    
-//     for (j = 0; from[j] != '\0'; ++j) {
-//         to[j] = from[j];
-//     }
-//     to[j] = '\0';
-// }
-
 int Ktrim(char* string){
     int counter = 0;
     for (int i = 0; string[i] != '\0'; ++i) {
@@ -33,13 +24,16 @@ int Ktrim(char* string){
             string[counter] = string[i];
             counter++;
         }else{
-            if(!isspace(string[i+1])){
+            if(i != strlen(string) - 1 && !isspace(string[i+1])){
                 string[counter] = ' ';
                 counter++; 
             }
         }
     }
     string[counter] = '\0';
+    if(isEmpty(string)){
+        return -1;
+    }
     return counter;
 }
 
@@ -77,8 +71,22 @@ void store_alias(char *name, char** val){
         return;
     }
 
+    struct node *temp = head;
     if(search_alias(name,head, &emptyArray)){
-        return;
+        while(temp!= NULL) {
+            if(strcmp(temp->name, name) == 0) {
+                int j = 0;
+                int i = 2;
+                while (val[i] != NULL) {
+                    //char *cpy = addNode->arg[i];
+                    temp->arg[j] = malloc(strlen(val[i]) + 1);
+                    strcpy(temp->arg[j], val[i]);
+                    i++;
+                    j++;
+                }
+                return;
+            }
+        }
     }
 
     char danger1[] = "alias";
@@ -138,7 +146,7 @@ int unalias(char *name, struct node *curr){
 
 void printAlias(struct node *head){
     while(head != NULL) {
-        printf("%s ", head->name);
+        printf("%s", head->name);
         int i =0;
         
         while( head->arg[i] != NULL){
@@ -154,23 +162,26 @@ void printAlias(struct node *head){
             continue;
         }
     }
+    fflush(stdout);
 }
 
-void onePrint(char *name, struct node *head){
-    if(head == NULL){
+void onePrint(char *name, struct node *current){
+    if(current == NULL){
         return;
     }
     
-    if(strcmp(head->name, name) == 0){
-        printf("%s ", head->name);
+    if(strcmp(current->name, name) == 0){
+        printf("%s", current->name);
         int i =0;
         
-        while( head->arg[i] != NULL){
-            printf(" %s", head->arg[i]);
+        while(current->arg[i] != NULL){
+            if (!isEmpty(current->arg[i]))
+                printf(" %s", current->arg[i]);
             i++;
         }
 
         printf("\n");
+        fflush(stdout);
         return;
     }
     
@@ -178,7 +189,7 @@ void onePrint(char *name, struct node *head){
     //     return ;
     // }
 
-    onePrint(name, head->child);
+    onePrint(name, current->child);
 
     return;
 }
@@ -228,7 +239,8 @@ void filter(char** array, int length){
          if (counter > 1 
              || (position == strlen(array[arrayIndex]) - 1 && arrayIndex == length - 1) 
              || (position != strlen(array[arrayIndex]) - 1 && arrayIndex != length - 1)
-             || (arrayIndex < length - 2)){
+             || (arrayIndex < length - 2)
+             || (arrayIndex == 0)){
              write(2, "Redirection misformatted.\n", 26);
              return;
          }
@@ -281,7 +293,7 @@ void filter(char** array, int length){
                 int desc = open(file_name,O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
                 if(dup2(desc, STDOUT_FILENO) < 0) {
                     //Is this the correct error?
-                    printf("Cannot write to file %s.\n", file_name);
+                    fprintf(stderr,"Cannot write to file %s.\n", file_name);
                 }
                 close(desc);
                 execute(tempArray);
@@ -300,7 +312,6 @@ void filter(char** array, int length){
         } while (!WIFSIGNALED(status) && !WIFEXITED(status));
         //close
     }
-
     for(int i = 0; i < flength; i++){
              free(tempArray[i]);
     }
@@ -320,10 +331,12 @@ void turtle_mode(){
             exit_found = 1;
             continue;
         }
-        
+        if(strlen(buf) >= 511){
+            continue;
+        }
         buf[strcspn(buf, "\n")] = 0;
         int check = Ktrim(buf);
-        if(check == 0){
+        if(check == -1){
             continue;
         }
         char* token = strtok(buf, delim);
@@ -333,9 +346,7 @@ void turtle_mode(){
                 array[length] = malloc(strlen(token) + 1);
                 strcpy(array[length], token);
                 length++;
-
             }
-
             token = strtok(NULL, delim);
         }
         array[length] = NULL;
@@ -343,28 +354,23 @@ void turtle_mode(){
         }else if(strncmp(array[0], "exit",512) == 0){
             exit_found = 1;
         }else if(strncmp(array[0], "alias",512) == 0){
-            //write(1, "alias detected\n", 16);
-            if(array[2]!=NULL){
-                store_alias(array[1], array);
-            }else if(array[1]!=NULL){
-                onePrint(array[1], head);
-            }else{
+            if (array[1] == NULL) {
                 printAlias(head);
+            } else if (array[2] == NULL) {
+                onePrint(array[1], head);
+            } else {
+                store_alias(array[1], array);
             }
-
         }else if(strncmp(array[0], "unalias",512) == 0){
             write(1, "unalias detected\n", 18);
             unalias(array[1], head);
         }else{
             filter(array, length); 
         }
-
-
         for(int i = 0; i < length; i++){
              free(array[i]);
         }
         free(array);
-        //free(token); 
     }while(!exit_found);
     _exit(0);
 }
@@ -377,15 +383,17 @@ void bachelorette_mode(char *file){
     }
     int exit_found = 0;
     char buf[512];
-    while ((fgets(buf, sizeof(buf), fp) != NULL) && (!exit_found )){
-        
+    while ((fgets(buf, sizeof(buf), fp) != NULL) && !exit_found){
         const char delim[2] = " ";
-        char **array = malloc(64 * sizeof(char **));
+        if(strlen(buf) >= 511){
+            continue;
+        }
+        char **array = malloc(64 * sizeof(char *));
+        write(1, buf, strlen(buf));
         buf[strcspn(buf, "\n")] = 0;
         int check = Ktrim(buf);
         
-        if(check == 0){
-            printf("%s\n", buf);
+        if(check == -1){
             continue;
         }
 
@@ -402,16 +410,6 @@ void bachelorette_mode(char *file){
             token = strtok(NULL, delim);
         }
         array[length] = NULL;
-        for(int i = 0; i < length; i++){
-            write(1, array[i], strlen(array[i]));
-            if(i != length - 1){
-                write(1, " ", 1);
-            }else{
-                write(1, "\n", 1);
-            }
-        }
-
-       
         if(isEmpty(array[0])){
             continue;
         }
@@ -420,18 +418,15 @@ void bachelorette_mode(char *file){
             exit_found = 1;
         }else if(strncmp(array[0], "alias",512) == 0){
             //Is array[2] catching all the arguments
-            if(array[2]!=NULL){
-                store_alias(array[1], array);
-            }else if(array[1]!=NULL){
-                onePrint(array[1], head);
-            }else{
+            if (array[1] == NULL) {
                 printAlias(head);
+            } else if (array[2] == NULL) {
+                onePrint(array[1], head);
+            } else {
+                store_alias(array[1], array);
             }
-            
-            //write(1, "alias detected\n", 16);
         }else if(strncmp(array[0], "unalias",512) == 0){
             unalias(array[1], head);
-            write(1, "unalias detected\n", 18);
         }else{
             filter(array, length); 
         }
