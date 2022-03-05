@@ -17,14 +17,14 @@ int isEmpty(char* phrase){
     return 1;
 }
 
-void Kcopy(char* from, char* to){
-    int j = 0;
+// void Kcopy(char* from, char* to){
+//     int j = 0;
     
-    for (j = 0; from[j] != '\0'; ++j) {
-        to[j] = from[j];
-    }
-    to[j] = '\0';
-}
+//     for (j = 0; from[j] != '\0'; ++j) {
+//         to[j] = from[j];
+//     }
+//     to[j] = '\0';
+// }
 
 int Ktrim(char* string){
     int counter = 0;
@@ -72,8 +72,6 @@ bool search_alias(char *name, struct node *curr, char ***returnArray){
 
 void store_alias(char *name, char** val){
     char** emptyArray;
-
-    printf("here1\n");
     
     if(isEmpty(name)){
         return;
@@ -86,7 +84,6 @@ void store_alias(char *name, char** val){
     char danger1[] = "alias";
     char danger2[] = "unalias";
     char danger3[] = "exit";
-    printf("here2\n");
 
     if((strcasecmp(danger1, name)==0) || (strcasecmp(danger2, name)==0) || (strcasecmp(danger3, name)==0)){
         return;
@@ -106,16 +103,15 @@ void store_alias(char *name, char** val){
         i++;
         j++;
     }
-    printf("here3\n");
     if(head!= NULL){
         addNode->child = head->child;
     }
     addNode->arg[j] = NULL;
-    printf("here4\n");
 
     struct node *old = head;
     head = addNode;
     head->child = old;
+    fflush(stdout);
 }
 
 int unalias(char *name, struct node *curr){
@@ -348,8 +344,10 @@ void turtle_mode(){
             exit_found = 1;
         }else if(strncmp(array[0], "alias",512) == 0){
             //write(1, "alias detected\n", 16);
-            if(array[1]!=NULL){
+            if(array[2]!=NULL){
                 store_alias(array[1], array);
+            }else if(array[1]!=NULL){
+                onePrint(array[1], head);
             }else{
                 printAlias(head);
             }
@@ -373,10 +371,10 @@ void turtle_mode(){
 
 void bachelorette_mode(char *file){   
     FILE *fp = fopen(file, "r");
-        if (fp == NULL) {
-            fprintf(stderr,"Error: Cannot open file %s.\n", file);
-            _exit(1);
-        }
+    if (fp == NULL) {
+        fprintf(stderr,"Error: Cannot open file %s.\n", file);
+        _exit(1);
+    }
     int exit_found = 0;
     char buf[512];
     while ((fgets(buf, sizeof(buf), fp) != NULL) && (!exit_found )){
@@ -387,6 +385,7 @@ void bachelorette_mode(char *file){
         int check = Ktrim(buf);
         
         if(check == 0){
+            printf("%s\n", buf);
             continue;
         }
 
