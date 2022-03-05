@@ -26,6 +26,14 @@ int isEmpty(char* phrase){
     return 1;
 }
 
+void Kcopy(char* from, char* to){
+    int j = 0;
+    for (j = 0; from[j] != '\0'; ++j) {
+        to[j] = from[j];
+    }
+    to[j] = '\0';
+}
+
 char* jump(char* command){
     while(isspace(*command)) {
         command++;
@@ -36,25 +44,32 @@ char* jump(char* command){
 struct node {
     struct node* child;
     char name[512];
-    char arg[512];
+    char* arg[512];
 };
 
 struct node* head = NULL;
 
-int search_alias(char *name, struct node *curr){
-    if(strcasecmp(curr->name, name) == 0){
+int search_alias(char *name, struct node *curr, char ***returnArray){
+    if(head == NULL){
         return 1;
+    }
+
+    if(strcasecmp(curr->name, name) == 0){
+        return 0;
+        *returnArray = curr->arg;
     }
     
     if(curr-> child == NULL){
-        return 0;
+        return 1;
     }
 
-    return 0;
+    return 1;
 }
 
-void store_alias(char *name, char *val){
-    if(search_alias(name,head)==0){
+void store_alias(char *name, char** val){
+    char** emptyArray;
+    
+    if(search_alias(name,head, &emptyArray)==0){
         return;
     }
 
@@ -62,13 +77,17 @@ void store_alias(char *name, char *val){
     char danger2[] = "unalias";
     char danger3[] = "exit";
 
+
     if((strcasecmp(danger1, name)==0) || (strcasecmp(danger2, name)==0) || (strcasecmp(danger3, name)==0)){
         return;
     }
 
     struct node *addNode = (struct node*) malloc(sizeof(struct node));
     strcpy(addNode->name, name);
-    strcpy(addNode->arg, val);
+    for(int i = 2; i< sizeof(val); i++){
+        //char *cpy = addNode->arg[i];
+        Kcopy(addNode->arg[i], val[i]);
+    }
     if(head!= NULL){
         addNode->child = head->child;
     }
@@ -97,12 +116,18 @@ int unalias(char *name, struct node *curr){
     return 0;
 }
 
-void Kcopy(char* from, char* to){
-    int j = 0;
-    for (j = 0; from[j] != '\0'; ++j) {
-        to[j] = from[j];
+
+void execute(char** array){
+    if(!isEmpty(array[0])){
+        char** aliasArray;
+        if(search_alias(array[0], head, &aliasArray)== 0){
+                //call exec with alias
+                execv((char*)aliasArray[0], aliasArray);
+            }else{                            
+                execv(array[0], array);
+                fprintf(stderr, "%s: Command not found.\n", array[0]);  
+            }
     }
-    to[j] = '\0';
 }
 
 
@@ -136,7 +161,7 @@ void turtle_mode(){
             exit_found = 1;
         }else if(strncmp(array[0], "alias",512) == 0){
             write(1, "alias detected\n", 16);
-            store_alias(array[1], array[2]);
+            store_alias(array[1], array);
 
         }else if(strncmp(array[0], "unalias",512) == 0){
             write(1, "unalias detected\n", 18);
@@ -240,11 +265,7 @@ void turtle_mode(){
                             printf("Cannot write to file %s.\n", file_name);
                         }
                         close(desc);
-                        if(!isEmpty(array[0])){
-                            execv(array[0], array);
-                            //Add alias check
-                            fprintf(stderr, "%s: Command not found.\n", array[0]);  
-                        }
+                        execute(array);
                        
                         //dup2(saved_stdout, 1);
                         //close(saved_stdout);
@@ -252,11 +273,7 @@ void turtle_mode(){
                     }
                     
                 }else{
-                    if(!isEmpty(array[0])){
-                        execv(array[0], array);
-                        //Add alias check
-                        fprintf(stderr, "%s: Command not found.\n", array[0]);  
-                    }
+                    execute(array);
                     _exit(1);
                 }
                 
@@ -321,7 +338,7 @@ void bachelorette_mode(char *file){
             exit_found = 1;
         }else if(strncmp(array[0], "alias",512) == 0){
             //Is array[2] catching all the arguments
-            store_alias(array[1], array[2]);
+            store_alias(array[1], array);
             write(1, "alias detected\n", 16);
         }else if(strncmp(array[0], "unalias",512) == 0){
             unalias(array[1], head);
@@ -424,11 +441,7 @@ void bachelorette_mode(char *file){
                             printf("Cannot write to file %s.\n", file_name);
                         }
                         close(desc);
-                        if(!isEmpty(array[0])){
-                            execv(array[0], array);
-                            //Add alias check
-                            fprintf(stderr, "%s: Command not found.\n", array[0]);  
-                        }
+                        execute(array);
                        
                         //dup2(saved_stdout, 1);
                         //close(saved_stdout);
@@ -436,11 +449,7 @@ void bachelorette_mode(char *file){
                     }
                     
                 }else{
-                    if(!isEmpty(array[0])){
-                        execv(jump(array[0]), array);
-                        //Add alias check
-                        fprintf(stderr, "%s: Command not found.\n", array[0]);  
-                    }
+                   execute(array);
                     _exit(1);
                 }
                 
