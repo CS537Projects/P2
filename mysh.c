@@ -72,6 +72,8 @@ bool search_alias(char *name, struct node *curr, char ***returnArray){
 
 void store_alias(char *name, char** val){
     char** emptyArray;
+
+    printf("here1\n");
     
     if(isEmpty(name)){
         return;
@@ -84,7 +86,7 @@ void store_alias(char *name, char** val){
     char danger1[] = "alias";
     char danger2[] = "unalias";
     char danger3[] = "exit";
-
+    printf("here2\n");
 
     if((strcasecmp(danger1, name)==0) || (strcasecmp(danger2, name)==0) || (strcasecmp(danger3, name)==0)){
         return;
@@ -99,12 +101,17 @@ void store_alias(char *name, char** val){
     int i = 2;
     while (val[i] != NULL) {
         //char *cpy = addNode->arg[i];
-        strcpy(val[i], addNode->arg[i]);
+        addNode->arg[j] = malloc(strlen(val[i]) + 1);
+        strcpy(addNode->arg[j], val[i]);
+        i++;
+        j++;
     }
+    printf("here3\n");
     if(head!= NULL){
         addNode->child = head->child;
     }
     addNode->arg[j] = NULL;
+    printf("here4\n");
 
     struct node *old = head;
     head = addNode;
